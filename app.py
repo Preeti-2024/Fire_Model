@@ -3,21 +3,65 @@ import pandas as pd
 from file1_time import run_pool_fire_model
 from file2_distance import run_distance_model
 from file3_ppe import run_ppe_model
+from fuel_data import get_fuel_properties, get_all_fuel_names
 
-st.set_page_config(page_title="Gasoline Pool Fire + PPE Safety Simulator", layout="wide")
-st.title("🔥 Gasoline Pool Fire + PPE Safety Simulator")
+st.set_page_config(page_title="CFEES-DRDO Pool Fire & PPE Safety Simulator", layout="wide")
+
+# Add minimal CSS for header typography
+st.markdown("""
+    <style>
+    .org-title { font-size:26px; font-weight:700; color:#000000; margin-top:8px; white-space:nowrap; }
+    .org-subtitle { font-size:18px; font-weight:700; color:#000000; margin-top:4px; }
+    .app-title { font-size:24px; font-weight:700; color:#ff6b35; margin-top:8px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Header: text-only centered block (logo removed)
+st.markdown(
+    '''
+    <div style="width:100%; text-align:center;">
+      <div class="org-title">CENTRE FOR FIRE EXPLOSIVES AND ENVIRONMENT SAFETY</div>
+      <div class="org-subtitle">DRDO</div>
+      <div class="app-title">🔥 Pool Fire + PPE Safety Simulator</div>
+    </div>
+    ''',
+    unsafe_allow_html=True
+)
+
+st.markdown("---")
 
 # -----------------------------
 # USER INPUTS
 # -----------------------------
 st.header("1️⃣ Fire and PPE Inputs")
 
-# Fuel type
-fuel = st.selectbox("Select Fuel Type", ["Gasoline"])  # Only Gasoline supported
+col1, col2 = st.columns(2)
+
+with col1:
+    # Fuel type selection
+    fuel = st.selectbox("Select Fuel Type", get_all_fuel_names())
+    
+    # Get fuel properties from database
+    fuel_props = get_fuel_properties(fuel)
+    
+with col2:
+    st.markdown("### 📊 Fuel Properties (Auto-populated)")
+    st.info(f"""
+    **Burning Rate (ṁ''):** {fuel_props['burning_rate']} kg/m²·s  
+    **Lower Heating Value (LHV):** {fuel_props['lhv']} MJ/kg  
+    **Combustion Efficiency (η):** {fuel_props['combustion_efficiency']} (or {fuel_props['combustion_efficiency']*100:.0f}%)
+    """)
+
+st.markdown("---")
 
 # Mass and pool diameter
-m_fuel = st.number_input("Mass of Fuel (kg)", min_value=0.1, step=0.1)
-D = st.number_input("Pool Diameter (m)", min_value=0.1, step=0.1)
+col1, col2 = st.columns(2)
+
+with col1:
+    m_fuel = st.number_input("Mass of Fuel (kg)", min_value=0.1, step=0.1)
+    
+with col2:
+    D = st.number_input("Pool Diameter (m)", min_value=0.1, step=0.1)
 
 st.markdown("### PPE Layer Properties (All 4 Layers Required)")
 layers = []
@@ -44,7 +88,14 @@ if run_sim:
         st.header("2️⃣ Simulation Results")
 
         # ---- File 1: Pool Fire Model ----
-        fire_result = run_pool_fire_model(fuel, m_fuel, D)
+        fire_result = run_pool_fire_model(
+            fuel, 
+            m_fuel, 
+            D,
+            burning_rate=fuel_props['burning_rate'],
+            lhv_mj=fuel_props['lhv'],
+            combustion_efficiency=fuel_props['combustion_efficiency']
+        )
         st.subheader("🔥 Pool Fire Model (R=0)")
         st.write(f"**Burn Duration:** {fire_result['burn_duration_s']:.2f} s")
         st.write(f"**Peak Heat Flux:** {fire_result['q_peak_W_m2']/1000:.2f} kW/m²")

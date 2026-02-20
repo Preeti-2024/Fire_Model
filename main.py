@@ -2,6 +2,7 @@
 from file1_time import run_pool_fire_model
 from file2_distance import run_distance_model
 from file3_ppe import run_ppe_model
+from fuel_data import get_fuel_properties, get_all_fuel_names
 
 # -------------------------------------------------
 # TEST INPUT
@@ -10,10 +11,20 @@ fuel = "Gasoline"
 m_fuel = 14.8
 D = 2.0
 
+# Get fuel properties from database
+fuel_props = get_fuel_properties(fuel)
+
 # -------------------------------------------------
 # RUN FILE 1: Pool Fire Model
 # -------------------------------------------------
-fire_result = run_pool_fire_model(fuel, m_fuel, D)
+fire_result = run_pool_fire_model(
+    fuel, 
+    m_fuel, 
+    D,
+    burning_rate=fuel_props['burning_rate'],
+    lhv_mj=fuel_props['lhv'],
+    combustion_efficiency=fuel_props['combustion_efficiency']
+)
 
 print("===== POOL FIRE RESULTS =====")
 print("Burn Duration (s):", round(fire_result["burn_duration_s"], 2))

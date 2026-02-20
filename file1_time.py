@@ -9,17 +9,14 @@ import pandas as pd
 import math
 
 
-def run_pool_fire_model(fuel, m_fuel, D):
+def run_pool_fire_model(fuel, m_fuel, D, burning_rate=0.055, lhv_mj=43.7, combustion_efficiency=0.98):
 
     # ==========================================================
-    # AUTO-SET FUEL PROPERTIES (Gasoline)
+    # FUEL PROPERTIES
     # ==========================================================
-    if fuel.lower() == "gasoline":
-        m_dot_area = 0.055        # kg/m²·s
-        LHV = 43.7e6              # J/kg
-        eta = 0.98
-    else:
-        raise ValueError("Currently only Gasoline model is implemented")
+    m_dot_area = burning_rate      # kg/m²·s
+    LHV = lhv_mj * 1e6             # Convert MJ/kg to J/kg
+    eta = combustion_efficiency    # Combustion efficiency
 
     # Seat of fire
     R = 0.0
