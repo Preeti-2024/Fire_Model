@@ -65,20 +65,28 @@ density = fuel_props.get('density', None)
 if density is None:
     st.info("Fuel density not available in database. You can provide density manually if needed.")
 
-st.markdown("### 📊 Auto-populated Fuel Properties")
-prop_text = f"""
-**Burning Rate (ṁ''):** {fuel_props['burning_rate']} kg/m²·s  
-**Lower Heating Value (LHV):** {fuel_props['lhv']} MJ/kg  
-**Combustion Efficiency (η):** {fuel_props['combustion_efficiency']} (or {fuel_props['combustion_efficiency']*100:.0f}%)  
-**Density:** {density if density is not None else 'N/A'} kg/m³
-"""
+disp_col1, disp_col2 = st.columns(2)
+with disp_col2:
+    st.markdown("### 📊 Auto-populated Fuel Properties")
+    # Allow user to override density (pre-filled from database when available)
+    default_density = density if density is not None else 0.0
+    user_density = st.number_input("Fuel Density (kg/m³) — edit to override", value=float(default_density), min_value=0.0, step=0.1, format="%.2f")
 
-if density is not None and m_fuel > 0:
-    volume_m3 = m_fuel / density
-    volume_l = volume_m3 * 1000.0
-    prop_text += f"**Estimated Fuel Volume:** {volume_m3:.5f} m³ ({volume_l:.2f} L) — computed as V = m/ρ\n"
+    prop_text = f"""
+    **Burning Rate (ṁ''):** {fuel_props['burning_rate']} kg/m²·s  
+    **Lower Heating Value (LHV):** {fuel_props['lhv']} MJ/kg  
+    **Combustion Efficiency (η):** {fuel_props['combustion_efficiency']} (or {fuel_props['combustion_efficiency']*100:.0f}%)  
+    **Density used:** {user_density:.2f} kg/m³
+    """
 
-st.info(prop_text)
+    if user_density > 0 and m_fuel > 0:
+        volume_m3 = m_fuel / user_density
+        volume_l = volume_m3 * 1000.0
+        prop_text += f"**Estimated Fuel Volume:** {volume_m3:.5f} m³ ({volume_l:.2f} L) — computed as V = m/ρ\n"
+    else:
+        prop_text += "**Estimated Fuel Volume:** N/A (provide a positive density)\n"
+
+    st.info(prop_text)
 
 st.markdown("### PPE Layer Properties (All 4 Layers Required)")
 layers = []
