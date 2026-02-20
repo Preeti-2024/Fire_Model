@@ -50,33 +50,29 @@ with col2:
 
 st.markdown("---")
 
-# Mass and pool diameter
-col1, col2 = st.columns(2)
+# Mass and auto-populated properties side-by-side
+left_col, right_col = st.columns([1, 1])
 
-with col1:
+with left_col:
     m_fuel = st.number_input("Mass of Fuel (kg)", min_value=0.1, step=0.1)
-    
-with col2:
     D = st.number_input("Pool Diameter (m)", min_value=0.1, step=0.1)
 
-# Show estimated fuel volume (based on selected fuel density)
-## Auto-populated fuel properties including volume (uses entered mass)
-density = fuel_props.get('density', None)
-if density is None:
-    st.info("Fuel density not available in database. You can provide density manually if needed.")
-
-disp_col1, disp_col2 = st.columns(2)
-with disp_col2:
+with right_col:
+    # Auto-populated fuel properties (fixed density shown)
+    density = fuel_props.get('density', None)
     st.markdown("### 📊 Auto-populated Fuel Properties")
-    # Allow user to override density (pre-filled from database when available)
-    default_density = density if density is not None else 0.0
-    user_density = st.number_input("Fuel Density (kg/m³) — edit to override", value=float(default_density), min_value=0.0, step=0.1, format="%.2f")
+    if density is None:
+        st.info("Fuel density not available in database.")
 
+    default_density = density if density is not None else 0.0
+    user_density = st.number_input("Fuel Density (kg/m³)", value=float(default_density), min_value=0.0, step=0.1, format="%.2f", disabled=True)
+
+    st.markdown("**Governing formula:**  V = m / ρ")
     prop_text = f"""
     **Burning Rate (ṁ''):** {fuel_props['burning_rate']} kg/m²·s  
     **Lower Heating Value (LHV):** {fuel_props['lhv']} MJ/kg  
     **Combustion Efficiency (η):** {fuel_props['combustion_efficiency']} (or {fuel_props['combustion_efficiency']*100:.0f}%)  
-    **Density used:** {user_density:.2f} kg/m³
+    **Density:** {user_density:.2f} kg/m³
     """
 
     if user_density > 0 and m_fuel > 0:
@@ -84,7 +80,7 @@ with disp_col2:
         volume_l = volume_m3 * 1000.0
         prop_text += f"**Estimated Fuel Volume:** {volume_m3:.5f} m³ ({volume_l:.2f} L) — computed as V = m/ρ\n"
     else:
-        prop_text += "**Estimated Fuel Volume:** N/A (provide a positive density)\n"
+        prop_text += "**Estimated Fuel Volume:** N/A (provide a positive density and mass)\n"
 
     st.info(prop_text)
 
