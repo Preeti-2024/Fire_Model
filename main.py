@@ -14,6 +14,14 @@ D = 2.0
 # Get fuel properties from database
 fuel_props = get_fuel_properties(fuel)
 
+# Compute fuel volume from mass and density if available
+density = fuel_props.get('density', None)
+if density:
+    volume_m3 = m_fuel / density
+    volume_l = volume_m3 * 1000.0
+else:
+    volume_m3 = None
+
 # -------------------------------------------------
 # RUN FILE 1: Pool Fire Model
 # -------------------------------------------------
@@ -30,6 +38,9 @@ print("===== POOL FIRE RESULTS =====")
 print("Burn Duration (s):", round(fire_result["burn_duration_s"], 2))
 print("Peak Flux at R=0 (kW/m²):", round(fire_result["q_peak_W_m2"]/1000, 2))
 print("Time at Peak (s):", round(fire_result["t_peak_s"], 2))
+print("Fuel Density (kg/m³):", density if density is not None else "N/A")
+if volume_m3 is not None:
+    print("Fuel Volume (m³):", round(volume_m3, 4), "(", round(volume_l, 2), "L)")
 
 # -------------------------------------------------
 # RUN FILE 2: Distance Model
